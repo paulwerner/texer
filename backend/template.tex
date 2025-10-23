@@ -125,14 +125,6 @@
 
 \begin{document}
 
-% Title page (no line numbers here)
-\maketitle
-\thispagestyle{fancy}
-\noindent\rule{\textwidth}{0.4pt}
-
-% Start line numbering from here
-\linenumbers
-
 % ============================================
 % HELPER COMMANDS
 % ============================================
@@ -142,9 +134,12 @@
     \newpage%
     \setcounter{page}{1}%  % Reset page number to 1 for this exercise
     \nolinenumbers%
+    \thispagestyle{fancy}%
     % Add course header
     {\centering\Large\textbf{Algorithms WiSe25/26}\par}%
     {\centering\large Exercise Sheet \#\exercisenum\par}%
+    {\centering\normalsize\today\par}%
+    \noindent\rule{\textwidth}{0.4pt}%
     \vspace{1em}%
     \section*{#1}%
     \resetlinenumber%  % Reset line numbers to 1
