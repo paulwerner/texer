@@ -547,7 +547,7 @@ function LatexEditor() {
 
 \\textbf{Solution:}
 
-Write your solution here.Use \\textbackslash   for commands.
+Write your solution here.Use / for commands.
 
 You can use inline math like $\\BigO{n \\log n}$ or display math:
 
@@ -1016,9 +1016,6 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
         <div className="h-full max-w-screen-2xl mx-auto p-4 flex gap-4">
           {/* Editor - Takes more space (58%) */}
           <Card className={`flex flex-col ${showPreview ? 'w-[58%]' : 'w-full'}`}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">LaTeX Editor</CardTitle>
-            </CardHeader>
             <CardContent className="flex-1 flex flex-col p-0 overflow-hidden relative">
               <textarea
                 ref={editorRef}
@@ -1052,7 +1049,7 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
           {/* Preview - Takes less space (42%) */}
           {showPreview && (
             <Card className="w-[42%] flex flex-col overflow-hidden">
-              <CardContent className="flex-1 pt-[3.25rem] px-4 pb-4 overflow-hidden flex items-center justify-center">
+              <CardContent className="flex-1 p-1 overflow-hidden flex items-center justify-center">
                 {error && (
                   <div className="p-4 bg-destructive/10 text-destructive text-sm border-l-4 border-destructive">
                     <strong>Error:</strong> {error}
@@ -1065,9 +1062,9 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
                       className="bg-white shadow-lg"
                       style={{
                         width: '100%',
-                        maxWidth: 'min(100%, calc((100vh - 16rem) * 0.707))', // A4 width based on height
+                        maxWidth: 'min(100%, calc((100vh - 6rem) * 0.707))', // A4 width based on height
                         aspectRatio: '1 / 1.414',
-                        maxHeight: 'calc(100vh - 16rem)',
+                        maxHeight: 'calc(100vh - 6rem)',
                       }}
                     >
                       <iframe
