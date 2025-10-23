@@ -112,13 +112,16 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
       const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       const url = URL.createObjectURL(pdfBlob);
       
+      // Add parameters to hide PDF viewer UI elements
+      const urlWithParams = `${url}#toolbar=0&navpanes=0&scrollbar=0`;
+      
       // Revoke old URL if exists
       if (previousPdfUrl.current) {
         URL.revokeObjectURL(previousPdfUrl.current);
       }
       
       previousPdfUrl.current = url;
-      setPdfUrl(url);
+      setPdfUrl(urlWithParams);
     } catch (err) {
       let errorMessage = 'Compilation failed';
       
@@ -297,44 +300,52 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full max-w-screen-2xl mx-auto p-4 flex gap-4">
-          {/* Editor */}
-          <Card className={`flex-1 flex flex-col ${showPreview ? 'w-1/2' : 'w-full'}`}>
+          {/* Editor - Takes more space (58%) */}
+          <Card className={`flex flex-col ${showPreview ? 'w-[58%]' : 'w-full'}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">LaTeX Editor</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col p-0">
+            <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
               <textarea
                 ref={editorRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="flex-1 w-full px-4 py-2 font-mono text-sm bg-card text-foreground border-none outline-none resize-none scrollbar-thin"
+                className="flex-1 w-full px-4 py-2 font-mono text-sm bg-card text-foreground border-none outline-none resize-none overflow-y-auto scrollbar-hide"
                 placeholder="Start writing your exercise solution..."
                 spellCheck={false}
               />
             </CardContent>
           </Card>
 
-          {/* Preview */}
+          {/* Preview - Takes less space (42%) */}
           {showPreview && (
-            <Card className="flex-1 w-1/2 flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  PDF Preview
-                  {isCompiling && <span className="text-sm text-muted-foreground ml-2">(Compiling...)</span>}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 p-0">
+            <Card className="w-[42%] flex flex-col overflow-hidden">
+              <CardContent className="flex-1 pt-[3.25rem] px-4 pb-4 overflow-hidden flex items-center justify-center">
                 {error && (
                   <div className="p-4 bg-destructive/10 text-destructive text-sm border-l-4 border-destructive">
                     <strong>Error:</strong> {error}
                   </div>
                 )}
                 {pdfUrl && !error && (
-                  <iframe
-                    src={pdfUrl}
-                    className="w-full h-full border-none"
-                    title="PDF Preview"
-                  />
+                  <div className="w-full h-full overflow-y-auto scrollbar-hide flex items-start justify-center">
+                    {/* A4 proportions container: 210mm × 297mm = 1:1.414 ratio */}
+                    <div 
+                      className="bg-white shadow-lg"
+                      style={{
+                        width: '100%',
+                        maxWidth: 'min(100%, calc((100vh - 16rem) * 0.707))', // A4 width based on height
+                        aspectRatio: '1 / 1.414',
+                        maxHeight: 'calc(100vh - 16rem)',
+                      }}
+                    >
+                      <iframe
+                        src={pdfUrl}
+                        className="w-full h-full border-none"
+                        title="PDF Preview"
+                        style={{ display: 'block' }}
+                      />
+                    </div>
+                  </div>
                 )}
                 {!pdfUrl && !error && !isCompiling && (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
