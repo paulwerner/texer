@@ -5,6 +5,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const { v4: uuidv4 } = require('uuid');
+const archiver = require('archiver');
 
 const execAsync = promisify(exec);
 
@@ -80,6 +81,50 @@ async function compileLaTeX(texContent, jobId) {
   }
 }
 
+// Parse exercises from content by finding \exercisetitle{} boundaries
+function parseExercises(content) {
+  // Find all \exercisetitle occurrences
+  const exerciseTitleRegex = /\\exercisetitle\{[^}]*\}/g;
+  const matches = [];
+  let match;
+  
+  while ((match = exerciseTitleRegex.exec(content)) !== null) {
+    matches.push({
+      index: match.index,
+      text: match[0]
+    });
+  }
+  
+  if (matches.length === 0) {
+    return [];
+  }
+  
+  // Split content into individual exercises
+  const exercises = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].index;
+    const end = i < matches.length - 1 ? matches[i + 1].index : content.length;
+    const exerciseContent = content.substring(start, end).trim();
+    
+    exercises.push({
+      number: i + 1,
+      content: exerciseContent
+    });
+  }
+  
+  return exercises;
+}
+
+// Create a complete LaTeX document for a single exercise
+function compileExerciseWithTemplate(exerciseContent, template, sheetNumber) {
+  // Inject exercise content into template
+  const fullDocument = template
+    .replace('% Content will be inserted here by the editor', exerciseContent)
+    .replace('\\newcommand{\\exercisenum}{X}', `\\newcommand{\\exercisenum}{${sheetNumber}}`);
+  
+  return fullDocument;
+}
+
 // API Routes
 
 // Health check
@@ -99,13 +144,14 @@ app.get('/api/template', async (req, res) => {
 
 // Compile LaTeX
 app.post('/api/compile', async (req, res) => {
-  const { content } = req.body;
+  const { content, sheetNumber } = req.body;
   
   if (!content) {
     return res.status(400).json({ error: 'No content provided' });
   }
   
   const jobId = uuidv4();
+  const sheetNum = sheetNumber || 1;
   
   try {
     const result = await compileLaTeX(content, jobId);
@@ -116,7 +162,7 @@ app.post('/api/compile', async (req, res) => {
       
       res.set({
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline; filename=document.pdf',
+        'Content-Disposition': `inline; filename=sheet_${sheetNum}.pdf`,
         'Content-Length': pdfBuffer.length
       });
       
@@ -142,60 +188,112 @@ app.post('/api/compile', async (req, res) => {
   }
 });
 
-// Split and compile individual exercises
-app.post('/api/compile-exercises', async (req, res) => {
-  const { content, exerciseNumbers } = req.body;
+// Split and compile individual exercises as zip
+app.post('/api/compile-split', async (req, res) => {
+  const { content, sheetNumber } = req.body;
   
-  if (!content || !Array.isArray(exerciseNumbers)) {
-    return res.status(400).json({ error: 'Invalid request' });
+  if (!content) {
+    return res.status(400).json({ error: 'No content provided' });
   }
   
+  const sheetNum = sheetNumber || 1;
   const jobId = uuidv4();
-  const results = [];
+  const workDir = path.join(TEMP_DIR, jobId);
   
-  for (const exerciseNum of exerciseNumbers) {
-    try {
-      // Extract exercise content (simplified - you may need more sophisticated parsing)
-      const exerciseRegex = new RegExp(
-        `\\\\exercisetitle\\{Exercise ${exerciseNum}:.*?\\}([\\s\\S]*?)(?=\\\\exercisetitle|\\\\end\\{document\\})`,
-        'i'
-      );
+  try {
+    await fs.mkdir(workDir, { recursive: true });
+    
+    // Get template
+    const template = await getTemplate();
+    
+    // Parse exercises from content
+    const exercises = parseExercises(content);
+    
+    if (exercises.length === 0) {
+      return res.status(400).json({ 
+        error: 'No exercises found',
+        details: 'No \\exercisetitle{} commands found in the content'
+      });
+    }
+    
+    const pdfPaths = [];
+    
+    // Compile each exercise separately
+    for (const exercise of exercises) {
+      const exerciseJobId = `${jobId}_ex${exercise.number}`;
+      const exerciseDoc = compileExerciseWithTemplate(exercise.content, template, sheetNum);
       
-      const match = content.match(exerciseRegex);
-      if (!match) continue;
-      
-      // Create a document with just this exercise
-      const singleExerciseContent = content.replace(
-        /\\exercisetitle\{Exercise \d+:.*?\}[\s\S]*?(?=\\end{document})/gi,
-        `\\exercisetitle{Exercise ${exerciseNum}:${match[0].split(':')[1].split('}')[0]}}${match[1]}`
-      );
-      
-      const result = await compileLaTeX(singleExerciseContent, `${jobId}_ex${exerciseNum}`);
+      const result = await compileLaTeX(exerciseDoc, exerciseJobId);
       
       if (result.success) {
-        const pdfBuffer = await fs.readFile(result.pdfPath);
-        results.push({
-          exerciseNumber: exerciseNum,
-          pdf: pdfBuffer.toString('base64')
-        });
+        const filename = `sheet_${sheetNum}_exercise_${exercise.number}.pdf`;
+        const targetPath = path.join(workDir, filename);
+        
+        // Copy PDF to work directory with proper name
+        await fs.copyFile(result.pdfPath, targetPath);
+        pdfPaths.push({ filename, path: targetPath });
+      } else {
+        console.error(`Failed to compile exercise ${exercise.number}:`, result.error);
+        // Continue with other exercises
       }
-    } catch (error) {
-      console.error(`Error compiling exercise ${exerciseNum}:`, error);
     }
+    
+    if (pdfPaths.length === 0) {
+      return res.status(400).json({ 
+        error: 'Compilation failed',
+        details: 'All exercises failed to compile'
+      });
+    }
+    
+    // Create zip file
+    const zipFilename = `sheet_${sheetNum}_exercises.zip`;
+    const zipPath = path.join(workDir, zipFilename);
+    const output = require('fs').createWriteStream(zipPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    
+    // Handle zip completion
+    await new Promise((resolve, reject) => {
+      output.on('close', resolve);
+      archive.on('error', reject);
+      
+      archive.pipe(output);
+      
+      // Add each PDF to the zip
+      for (const pdf of pdfPaths) {
+        archive.file(pdf.path, { name: pdf.filename });
+      }
+      
+      archive.finalize();
+    });
+    
+    // Read the zip file and send it
+    const zipBuffer = await fs.readFile(zipPath);
+    
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename=${zipFilename}`,
+      'Content-Length': zipBuffer.length
+    });
+    
+    res.send(zipBuffer);
+    
+    // Cleanup after sending
+    setTimeout(async () => {
+      try {
+        await fs.rm(path.join(TEMP_DIR, jobId), { recursive: true, force: true });
+        // Clean up individual exercise directories
+        for (const exercise of exercises) {
+          await fs.rm(path.join(TEMP_DIR, `${jobId}_ex${exercise.number}`), { recursive: true, force: true });
+        }
+      } catch (e) {
+        console.error('Cleanup error:', e);
+      }
+    }, 5000);
+    
+  } catch (error) {
+    console.error('Split compilation error:', error);
+    res.status(500).json({ error: error.message });
   }
-  
-  res.json({ results });
-  
-  // Cleanup
-  setTimeout(async () => {
-    try {
-      for (const exerciseNum of exerciseNumbers) {
-        await fs.rm(path.join(TEMP_DIR, `${jobId}_ex${exerciseNum}`), { recursive: true, force: true });
-      }
-    } catch (e) {
-      console.error('Cleanup error:', e);
-    }
-  }, 5000);
 });
 
 // Start server

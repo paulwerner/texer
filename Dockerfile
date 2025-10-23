@@ -26,7 +26,7 @@ WORKDIR /app
 
 # --- backend deps ---
 WORKDIR /app/backend
-COPY backend/package.json ./
+COPY backend/package.json backend/package-lock.json ./
 RUN npm install --omit=dev
 
 # --- frontend deps ---

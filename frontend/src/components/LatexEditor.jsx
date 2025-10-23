@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from './Button';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
-import { FileDown, Play, Code, Eye } from 'lucide-react';
+import { FileDown, Play, Code, Eye, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import CommandAutocomplete from './CommandAutocomplete';
 
@@ -518,6 +518,7 @@ function LatexEditor() {
   const [error, setError] = useState(null);
   const [showPreview, setShowPreview] = useState(true);
   const [exerciseNumber, setExerciseNumber] = useState(1);
+  const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
   
   // Autocomplete state
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -529,6 +530,7 @@ function LatexEditor() {
   
   const editorRef = useRef(null);
   const autocompleteRef = useRef(null);
+  const downloadDropdownRef = useRef(null);
   const compileTimeoutRef = useRef(null);
   const hasInitiallyCompiled = useRef(false);
   const previousPdfUrl = useRef(null);
@@ -583,7 +585,8 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
       );
 
       const response = await axios.post('/api/compile', {
-        content: fullDocument
+        content: fullDocument,
+        sheetNumber: exerciseNumber
       }, {
         responseType: 'blob'
       });
@@ -913,6 +916,20 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showAutocomplete]);
 
+  // Close download dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showDownloadDropdown && 
+          downloadDropdownRef.current && 
+          !downloadDropdownRef.current.contains(e.target)) {
+        setShowDownloadDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDownloadDropdown]);
+
   // Load template on mount
   useEffect(() => {
     loadTemplate();
@@ -956,8 +973,72 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
 
     const link = document.createElement('a');
     link.href = pdfUrl;
-    link.download = `exercise_${exerciseNumber}.pdf`;
+    link.download = `sheet_${exerciseNumber}.pdf`;
     link.click();
+  };
+
+  const downloadSplitExercises = async () => {
+    if (!template || template.length === 0) {
+      setError('Template not loaded yet');
+      return;
+    }
+
+    setIsCompiling(true);
+    setError(null);
+
+    try {
+      // Inject content into template
+      const fullDocument = template.replace(
+        '% Content will be inserted here by the editor',
+        content
+      ).replace(
+        '\\newcommand{\\exercisenum}{X}',
+        `\\newcommand{\\exercisenum}{${exerciseNumber}}`
+      );
+
+      const response = await axios.post('/api/compile-split', {
+        content: fullDocument,
+        sheetNumber: exerciseNumber
+      }, {
+        responseType: 'blob'
+      });
+
+      // Create blob URL for ZIP
+      const zipBlob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(zipBlob);
+      
+      // Trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `sheet_${exerciseNumber}_exercises.zip`;
+      link.click();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      let errorMessage = 'Split compilation failed';
+      
+      // Handle blob error responses
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+          if (errorData.details) {
+            console.error('Split compilation details:', errorData.details);
+          }
+        } catch (e) {
+          // If parsing fails, use default message
+        }
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      
+      setError(errorMessage);
+      console.error('Split compilation error:', err);
+    } finally {
+      setIsCompiling(false);
+    }
   };
 
   return (
@@ -997,15 +1078,44 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
                 <Play className="w-4 h-4 mr-2" />
                 {isCompiling ? 'Compiling...' : 'Compile'}
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={downloadPDF}
-                disabled={!pdfUrl}
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                Download PDF
-              </Button>
+              <div className="relative" ref={downloadDropdownRef}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowDownloadDropdown(!showDownloadDropdown)}
+                  disabled={!pdfUrl}
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Download
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+                
+                {showDownloadDropdown && (
+                  <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-md shadow-lg z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          downloadPDF();
+                          setShowDownloadDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        Complete Sheet
+                      </button>
+                      <button
+                        onClick={() => {
+                          downloadSplitExercises();
+                          setShowDownloadDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                        disabled={isCompiling}
+                      >
+                        Split Exercises
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

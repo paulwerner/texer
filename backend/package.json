@@ -8,8 +8,9 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.21.1",
+    "archiver": "^7.0.1",
     "cors": "^2.8.5",
+    "express": "^4.21.1",
     "multer": "^1.4.5-lts.1",
     "uuid": "^11.0.2"
   },
