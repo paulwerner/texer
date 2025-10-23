@@ -4,7 +4,7 @@ A web-based editor for creating, rendering, and exporting algorithm exercise PDF
 
 ## Features
 
-- 🎨 **WYSIWYG Interface** - User-friendly editor with real-time PDF preview
+- 🎨 **Live Preview** - Real-time PDF rendering as you type
 - ⚡ **Smart Compilation** - Auto-compile mode (2s after typing) or manual compile mode with hover-to-switch dropdown
 - 🔧 **Built-in Commands** - Slash command autocomplete with 40+ commonly used LaTeX commands
 - 📝 **Split View** - Side-by-side editor and PDF preview, or editor-only mode
