@@ -339,4 +339,4 @@ Service
 
 ---
 
-This architecture provides a solid foundation for a LaTeX exercise editor with room for future enhancements and scaling!
+This architecture provides a solid foundation for a TeXer, the LaTeX exercise editor with room for future enhancements and scaling!

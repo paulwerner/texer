@@ -222,7 +222,7 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
         <div className="max-w-screen-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900">LaTeX Exercise Editor</h1>
+              <h1 className="text-2xl font-bold text-gray-900">TeXer Exercise Editor</h1>
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">Exercise #:</label>
                 <input
