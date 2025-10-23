@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from './Button';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
-import { FileDown, Play, Code, Eye, ChevronDown } from 'lucide-react';
+import { FileDown, Play, Code, Eye, ChevronDown, PlayCircle, Check } from 'lucide-react';
 import axios from 'axios';
 import CommandAutocomplete from './CommandAutocomplete';
 
@@ -519,6 +519,8 @@ function LatexEditor() {
   const [showPreview, setShowPreview] = useState(true);
   const [exerciseNumber, setExerciseNumber] = useState(1);
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
+  const [compileMode, setCompileMode] = useState('auto'); // 'auto' | 'manual'
+  const [showCompileDropdown, setShowCompileDropdown] = useState(false);
   
   // Autocomplete state
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -531,6 +533,9 @@ function LatexEditor() {
   const editorRef = useRef(null);
   const autocompleteRef = useRef(null);
   const downloadDropdownRef = useRef(null);
+  const compileDropdownRef = useRef(null);
+  const compileShowTimeoutRef = useRef(null);
+  const compileHideTimeoutRef = useRef(null);
   const compileTimeoutRef = useRef(null);
   const hasInitiallyCompiled = useRef(false);
   const previousPdfUrl = useRef(null);
@@ -930,14 +935,57 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDownloadDropdown]);
 
+  // Close compile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showCompileDropdown && 
+          compileDropdownRef.current && 
+          !compileDropdownRef.current.contains(e.target)) {
+        setShowCompileDropdown(false);
+        
+        // Clear any pending timers when closing via click outside
+        if (compileShowTimeoutRef.current) {
+          clearTimeout(compileShowTimeoutRef.current);
+          compileShowTimeoutRef.current = null;
+        }
+        if (compileHideTimeoutRef.current) {
+          clearTimeout(compileHideTimeoutRef.current);
+          compileHideTimeoutRef.current = null;
+        }
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCompileDropdown]);
+
+  // Auto-switch to manual mode when in Editor-only mode
+  useEffect(() => {
+    if (!showPreview && compileMode === 'auto') {
+      setCompileMode('manual');
+    }
+  }, [showPreview, compileMode]);
+
   // Load template on mount
   useEffect(() => {
     loadTemplate();
   }, []);
 
-  // Auto-compile on content change
+  // Cleanup compile dropdown timers on unmount
   useEffect(() => {
-    if (content && content.length > 50) {
+    return () => {
+      if (compileShowTimeoutRef.current) {
+        clearTimeout(compileShowTimeoutRef.current);
+      }
+      if (compileHideTimeoutRef.current) {
+        clearTimeout(compileHideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-compile on content change (only when in auto mode)
+  useEffect(() => {
+    if (content && content.length > 50 && compileMode === 'auto') {
       // Clear existing timeout
       if (compileTimeoutRef.current) {
         clearTimeout(compileTimeoutRef.current);
@@ -954,7 +1002,7 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
         clearTimeout(compileTimeoutRef.current);
       }
     };
-  }, [content, compileLatex]);
+  }, [content, compileLatex, compileMode]);
 
   // Initial compilation after template and content are loaded
   useEffect(() => {
@@ -1041,6 +1089,64 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     }
   };
 
+  // Compile button hover handlers (professional pattern with grace period)
+  const handleCompileButtonMouseEnter = () => {
+    // Don't show dropdown in Editor-only mode (always manual mode)
+    if (!showPreview) {
+      return;
+    }
+    
+    // Cancel any pending hide timer (user came back)
+    if (compileHideTimeoutRef.current) {
+      clearTimeout(compileHideTimeoutRef.current);
+      compileHideTimeoutRef.current = null;
+    }
+    
+    // If dropdown is already shown, keep it shown
+    if (showCompileDropdown) {
+      return;
+    }
+    
+    // Start timer to show dropdown after 500ms hover
+    if (!compileShowTimeoutRef.current) {
+      compileShowTimeoutRef.current = setTimeout(() => {
+        setShowCompileDropdown(true);
+        compileShowTimeoutRef.current = null;
+      }, 500);
+    }
+  };
+
+  const handleCompileButtonMouseLeave = () => {
+    // Cancel any pending show timer (user left before it showed)
+    if (compileShowTimeoutRef.current) {
+      clearTimeout(compileShowTimeoutRef.current);
+      compileShowTimeoutRef.current = null;
+    }
+    
+    // If dropdown is shown, start grace period before hiding
+    if (showCompileDropdown) {
+      compileHideTimeoutRef.current = setTimeout(() => {
+        setShowCompileDropdown(false);
+        compileHideTimeoutRef.current = null;
+      }, 300); // 300ms grace period to move from button to dropdown
+    }
+  };
+
+  const handleCompileModeChange = (mode) => {
+    setCompileMode(mode);
+    setShowCompileDropdown(false);
+    
+    // Clear any pending timers
+    if (compileShowTimeoutRef.current) {
+      clearTimeout(compileShowTimeoutRef.current);
+      compileShowTimeoutRef.current = null;
+    }
+    if (compileHideTimeoutRef.current) {
+      clearTimeout(compileHideTimeoutRef.current);
+      compileHideTimeoutRef.current = null;
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
@@ -1069,15 +1175,53 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
                 {showPreview ? <Code className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
                 {showPreview ? 'Editor Only' : 'Show Preview'}
               </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={compileLatex}
-                disabled={isCompiling}
+              <div 
+                className="relative" 
+                ref={compileDropdownRef}
+                onMouseEnter={handleCompileButtonMouseEnter}
+                onMouseLeave={handleCompileButtonMouseLeave}
               >
-                <Play className="w-4 h-4 mr-2" />
-                {isCompiling ? 'Compiling...' : 'Compile'}
-              </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={compileLatex}
+                  disabled={isCompiling}
+                >
+                  {compileMode === 'auto' ? (
+                    <PlayCircle className="w-4 h-4 mr-2 fill-current" />
+                  ) : (
+                    <Play className="w-4 h-4 mr-2" />
+                  )}
+                  {isCompiling ? 'Compiling...' : 'Compile'}
+                </Button>
+                
+                {showCompileDropdown && (
+                  <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-md shadow-lg z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleCompileModeChange('auto')}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between"
+                      >
+                        <span className="flex items-center">
+                          <PlayCircle className="w-4 h-4 mr-2 fill-current" />
+                          Auto Compile
+                        </span>
+                        {compileMode === 'auto' && <Check className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleCompileModeChange('manual')}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between"
+                      >
+                        <span className="flex items-center">
+                          <Play className="w-4 h-4 mr-2" />
+                          Manual Compile
+                        </span>
+                        {compileMode === 'manual' && <Check className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="relative" ref={downloadDropdownRef}>
                 <Button
                   variant="secondary"
