@@ -5,13 +5,13 @@ A web-based editor for creating, rendering, and exporting algorithm exercise PDF
 ## Features
 
 - 🎨 **WYSIWYG Interface** - User-friendly editor with real-time PDF preview
-- ⚡ **Auto-Compile** - Automatic PDF rendering after 2 seconds of inactivity
-- 🔧 **Built-in Commands** - Quick access toolbar for 20+ commonly used LaTeX commands
-- 📝 **Split View** - Side-by-side editor and PDF preview
+- ⚡ **Smart Compilation** - Auto-compile mode (2s after typing) or manual compile mode with hover-to-switch dropdown
+- 🔧 **Built-in Commands** - Slash command autocomplete with 40+ commonly used LaTeX commands
+- 📝 **Split View** - Side-by-side editor and PDF preview, or editor-only mode
 - 📄 **Exercise Management** - Each exercise starts on page 1 with independent numbering
-- 💾 **Export** - Download PDFs with automatic naming (exercise_N.pdf)
+- 💾 **Export** - Download complete sheet or split exercises as separate PDFs
 - 🐳 **Docker Support** - Fully containerized with pre-installed LaTeX
-- 🚀 **Production Ready** - Deploy to Railway, Google Cloud Run, AWS, and more
+- 🚀 **Production Ready** - Deploy to Google Cloud Run, AWS, and more
 
 ## Tech Stack
 
@@ -81,40 +81,133 @@ A web-based editor for creating, rendering, and exporting algorithm exercise PDF
 ### Creating an Exercise
 
 1. Set exercise number in the header input field
-2. Click "Exercise Title" button or type `\exercisetitle{Exercise 1: Your Title}`
-3. Write your problem and solution using LaTeX
-4. Use toolbar buttons for quick LaTeX command insertion
-5. Wait for auto-compile (2 seconds) or click "Compile" manually
-6. Review PDF in the right panel
-7. Click "Download PDF" to save
+2. Type `/` in the editor to open the command autocomplete menu
+3. Search and select commands (e.g., `/exercise` → `\exercisetitle{}`)
+4. Write your problem and solution using LaTeX
+5. **Compilation Modes:**
+   - **Auto-Compile** (default): PDF updates automatically 2 seconds after you stop typing
+   - **Manual Compile**: Click "Compile" button to render PDF on demand
+   - **Switch modes**: Hover over compile button to show mode dropdown
+   - Editor-only mode automatically switches to manual compile
+6. Review PDF in the right panel (or hide it with "Editor Only" button)
+7. Click "Download" dropdown to save complete sheet or split exercises
 
 ### LaTeX Command Reference
 
-The editor provides quick-access buttons for these commands:
+The editor provides slash command autocomplete with 40+ commands. Type `/` in the editor and search by name or keyword.
 
+**Complexity & Algorithm Commands:**
 | Command | Output | Description |
 |---------|--------|-------------|
 | `\BigO{}` | O(n) | Big O notation |
-| `\BigOmega{}` | Ω(n) | Big Omega notation |
-| `\BigTheta{}` | Θ(n) | Big Theta notation |
+| `\BigOmega{}` | Ω(n) | Big Omega lower bound |
+| `\BigTheta{}` | Θ(n) | Big Theta tight bound |
+
+**Math Functions:**
+| Command | Output | Description |
+|---------|--------|-------------|
 | `\floor{}` | ⌊x⌋ | Floor function |
 | `\ceil{}` | ⌈x⌉ | Ceiling function |
 | `\abs{}` | \|x\| | Absolute value |
+| `\sqrt{}` | √x | Square root |
+| `\frac{}{}` | a/b | Fraction |
+| `\log_{}` | log | Logarithm with base |
+| `\ln` | ln | Natural logarithm |
+
+**Set Theory:**
+| Command | Output | Description |
+|---------|--------|-------------|
 | `\set{}` | {1,2,3} | Set notation |
 | `\card{}` | \|A\| | Set cardinality |
+| `\in` | ∈ | Element of set |
+| `\notin` | ∉ | Not element of set |
+| `\subset` | ⊂ | Proper subset |
+| `\subseteq` | ⊆ | Subset or equal |
+| `\cup` | ∪ | Set union |
+| `\cap` | ∩ | Set intersection |
+| `\emptyset` | ∅ | Empty set |
+
+**Comparison Operators:**
+| Command | Output | Description |
+|---------|--------|-------------|
+| `\leq` | ≤ | Less than or equal |
+| `\geq` | ≥ | Greater than or equal |
+| `\neq` | ≠ | Not equal |
+| `\approx` | ≈ | Approximately equal |
+| `\equiv` | ≡ | Equivalent to |
+
+**Logic & Quantifiers:**
+| Command | Output | Description |
+|---------|--------|-------------|
 | `$x \gets y$` | x ← y | Assignment operator |
-| `$\AND$` | ∧ | Logical AND |
-| `$\OR$` | ∨ | Logical OR |
-| `$\NOT$` | ¬ | Logical NOT |
+| `\AND` | ∧ | Logical AND |
+| `\OR` | ∨ | Logical OR |
+| `\NOT` | ¬ | Logical NOT |
+| `\TRUE` | TRUE | Boolean true |
+| `\FALSE` | FALSE | Boolean false |
+| `\forall` | ∀ | For all (universal) |
+| `\exists` | ∃ | There exists |
+
+**Number Sets:**
+| Command | Output | Description |
+|---------|--------|-------------|
 | `\N` | ℕ | Natural numbers |
 | `\Z` | ℤ | Integers |
 | `\R` | ℝ | Real numbers |
-| `\Q` | ℚ | Rational numbers |
-| `\C` | ℂ | Complex numbers |
-| `\TRUE` | TRUE | Boolean true |
-| `\FALSE` | FALSE | Boolean false |
+
+**Arrows & Implications:**
+| Command | Output | Description |
+|---------|--------|-------------|
+| `\rightarrow` | → | Right arrow |
+| `\leftarrow` | ← | Left arrow |
+| `\Rightarrow` | ⇒ | Implies |
+| `\Leftrightarrow` | ⇔ | If and only if (iff) |
+
+**Summation & Limits:**
+| Command | Output | Description |
+|---------|--------|-------------|
+| `\sum_{i=0}^{n}` | Σ | Summation with limits |
+| `\prod_{i=0}^{n}` | Π | Product with limits |
+| `\lim_{n \to \infty}` | lim | Limit as n approaches |
+| `\infty` | ∞ | Infinity symbol |
+
+**Text Formatting:**
+| Command | Output | Description |
+|---------|--------|-------------|
+| `\textbf{}` | **bold** | Bold text |
+| `\textit{}` | *italic* | Italic text |
+| `\emph{}` | *emphasized* | Emphasized text |
+| `\underline{}` | underline | Underlined text |
+| `\texttt{}` | `monospace` | Monospace/code text |
+
+**Document Structure:**
+| Command | Output | Description |
+|---------|--------|-------------|
+| `\section{}` | Section | Section heading |
+| `\subsection{}` | Subsection | Subsection heading |
 | `\exercisetitle{}` | - | Start new exercise |
 | `\exercisepart{}` | - | Add exercise subsection |
+
+**Templates:**
+- **Algorithm Block**: Complete algorithm environment with numbered lines
+
+### Slash Command Autocomplete
+
+The editor features an intelligent command autocomplete system:
+
+1. **Trigger**: Type `/` anywhere in the editor
+2. **Search**: Type to search commands by name or keywords (e.g., `/sum` finds summation, `/big` finds BigO/BigOmega/BigTheta)
+3. **Navigate**: Use ↑/↓ arrow keys or mouse to select
+4. **Insert**: Press Enter, Tab, or click to insert
+5. **Smart Wrapping**: Math commands automatically wrap in `$...$` or `\[...\]` depending on context
+6. **Cursor Positioning**: Cursor automatically placed inside `{}` or at optimal edit position
+
+**Example Searches:**
+- `/floor` → `\floor{}`
+- `/sum` → `\sum_{i=0}^{n}`
+- `/big` → Shows BigO, BigOmega, BigTheta
+- `/set` → Shows set operations (set, subset, emptyset, etc.)
+- `/arrow` → Shows all arrow commands
 
 ### Exercise Structure Example
 
@@ -134,7 +227,7 @@ The editor provides quick-access buttons for these commands:
 
 ### Algorithm Blocks
 
-Click the "Algorithm Block" button to insert a template:
+Type `/algorithm` or `/alg` to insert a complete algorithm template:
 
 ```latex
 \begin{algorithm}
@@ -161,9 +254,12 @@ Click the "Algorithm Block" button to insert a template:
 
 ### Exporting PDFs
 
-1. Click "Download PDF" button
-2. Files are automatically named `exercise_N.pdf` based on exercise number
+1. Click "Download" button dropdown
+2. Choose export option:
+   - **Complete Sheet**: Single PDF with all exercises (`sheet_N.pdf`)
+   - **Split Exercises**: ZIP file with individual PDFs per exercise (`sheet_N_exercises.zip`)
 3. PDFs include line numbers, page numbers, and algorithm numbering
+4. Each split exercise starts on page 1 with independent numbering
 
 ---
 
@@ -175,6 +271,7 @@ texer/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── LatexEditor.jsx    # Main editor component
+│   │   │   ├── CommandAutocomplete.jsx  # Slash command dropdown
 │   │   │   ├── Button.jsx         # shadcn Button component
 │   │   │   └── Card.jsx           # shadcn Card component
 │   │   ├── lib/
@@ -207,18 +304,21 @@ texer/
 ### Key Components
 
 **LatexEditor.jsx** (Frontend)
-- Command toolbar with 20+ pre-configured LaTeX commands
-- Auto-compile with debounced compilation (2-second delay)
-- Split view: side-by-side editor and PDF preview
+- Slash command autocomplete with 40+ pre-configured LaTeX commands
+- Smart compilation modes: auto-compile (2s debounce) or manual compile
+- Professional hover dropdown for mode switching (Stripe/Vercel pattern)
+- Split view: side-by-side editor and PDF preview, or editor-only mode
+- Automatic mode switching: editor-only forces manual compile
 - Dynamic exercise numbering
-- PDF download functionality
+- PDF download: complete sheet or split exercises
 - Error handling and display
+- Smart math mode wrapping for commands
 
 **server.js** (Backend)
 - `/api/health` - Health check endpoint
 - `/api/template` - Serve LaTeX template
 - `/api/compile` - Compile full LaTeX document to PDF
-- `/api/compile-exercises` - Compile individual exercises separately
+- `/api/compile-split` - Compile individual exercises separately and return as ZIP
 - Temporary directory management and cleanup
 - Detailed error logging
 
@@ -270,28 +370,26 @@ Compiles LaTeX content to PDF.
   }
   ```
 
-### POST `/api/compile-exercises`
-Compiles individual exercises separately.
+### POST `/api/compile-split`
+Compiles individual exercises separately and returns a ZIP file.
 
 **Request Body:**
 ```json
 {
-  "content": "Full LaTeX document",
-  "exerciseNumbers": [1, 2, 3]
+  "content": "Full LaTeX document content",
+  "sheetNumber": 1
 }
 ```
 
 **Response:**
-```json
-{
-  "results": [
-    {
-      "exerciseNumber": 1,
-      "pdf": "base64-encoded-pdf-data"
-    }
-  ]
-}
-```
+- Success: ZIP file (application/zip) containing separate PDFs for each exercise
+- Error: 
+  ```json
+  {
+    "error": "Split compilation failed",
+    "details": "Error message from pdflatex"
+  }
+  ```
 
 ---
 
@@ -463,7 +561,14 @@ REACT_APP_ENV=production
    ```javascript
    const LATEX_COMMANDS = {
      // ... existing commands
-     'newcmd': { label: 'New Command', insert: '\\newcommand{}', moveCursor: -1 },
+     '\\newcmd{}': { 
+       label: 'New Command',
+       description: 'Description shown in autocomplete',
+       keywords: ['new', 'command', 'searchable', 'keywords'],
+       symbol: '⚡', // Icon shown in dropdown
+       requiresMathMode: false, // true if command needs $ $ or \[ \]
+       isTemplate: false // true for multi-line templates
+     },
    };
    ```
 
@@ -473,6 +578,12 @@ REACT_APP_ENV=production
    ```latex
    \newcommand{\newcmd}[1]{...}
    ```
+
+3. **Command Features**
+   - Fuzzy search by label or keywords
+   - Automatic math mode wrapping (`requiresMathMode: true`)
+   - Smart cursor positioning (inside `{}` or at specific positions)
+   - Multi-line template support
 
 ### Modifying the Template
 
@@ -527,8 +638,10 @@ Changes take effect immediately (hot reload in Docker dev mode).
 **Issue:** PDF preview is blank or not updating
 
 **Solutions:**
-- Wait 2-3 seconds for auto-compile to finish
-- Click "Compile" button manually
+- Check compilation mode: hover over compile button to see if in auto or manual mode
+- **Auto mode**: Wait 2-3 seconds after stopping typing
+- **Manual mode**: Click "Compile" button to trigger compilation
+- Switch to auto mode if you want automatic updates
 - Check browser console for errors (F12)
 - Verify backend is running: `curl http://localhost:5000/api/health`
 - Hard refresh browser (Ctrl+Shift+R)
