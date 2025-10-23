@@ -29,7 +29,7 @@ A web-based editor for creating, rendering, and exporting algorithm exercise PDF
 
 1. **Setup and Start**
    ```bash
-   ./setup.sh
+   ./setup.sh # may take a few minutes on the first run
    docker compose up
    ```
 
