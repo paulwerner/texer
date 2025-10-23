@@ -1,0 +1,167 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================
+% PACKAGES
+% ============================================
+
+% Page layout
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{fancyhdr}
+
+% Line numbering
+\usepackage{lineno}
+
+% Mathematics
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% Algorithms (for pseudocode with internal numbering)
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Code listings
+\usepackage{listings}
+
+% Graphics and colors
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+% Better tables
+\usepackage{booktabs}
+\usepackage{array}
+
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+% Enumerations
+\usepackage{enumerate}
+
+% ============================================
+% GLOBAL SETTINGS
+% ============================================
+
+% Exercise number - CHANGE THIS TO YOUR EXERCISE NUMBER
+\newcommand{\exercisenum}{X}
+
+% Remove paragraph indentation globally (fixes indentation issues)
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+% ============================================
+% CUSTOM COMMANDS FOR ALGORITHMS
+% ============================================
+
+% Complexity notation
+\newcommand{\BigO}[1]{\mathcal{O}\left(#1\right)}
+\newcommand{\BigOmega}[1]{\Omega\left(#1\right)}
+\newcommand{\BigTheta}[1]{\Theta\left(#1\right)}
+\newcommand{\LittleO}[1]{o\left(#1\right)}
+\newcommand{\LittleOmega}[1]{\omega\left(#1\right)}
+
+% Common algorithm notation
+\newcommand{\card}[1]{\left|#1\right|}  % Cardinality
+\newcommand{\set}[1]{\left\{#1\right\}}  % Set notation
+\newcommand{\abs}[1]{\left|#1\right|}  % Absolute value
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}  % Floor
+\newcommand{\ceil}[1]{\left\lceil#1\rceil}  % Ceiling
+
+% Logical operators
+\newcommand{\AND}{\wedge}
+\newcommand{\OR}{\vee}
+\newcommand{\NOT}{\neg}
+\newcommand{\XOR}{\oplus}
+
+% Common sets
+\newcommand{\N}{\mathbb{N}}  % Natural numbers
+\newcommand{\Z}{\mathbb{Z}}  % Integers
+\newcommand{\Q}{\mathbb{Q}}  % Rationals
+\newcommand{\R}{\mathbb{R}}  % Reals
+\newcommand{\C}{\mathbb{C}}  % Complex numbers
+
+% Probability
+\newcommand{\Prob}[1]{\mathbb{P}\left[#1\right]}
+\newcommand{\Expect}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\Var}[1]{\text{Var}\left[#1\right]}
+
+% Algorithm keywords
+\newcommand{\TRUE}{\textsc{true}}
+\newcommand{\FALSE}{\textsc{false}}
+\newcommand{\NIL}{\textsc{nil}}
+
+% ============================================
+% HEADER CONFIGURATION
+% ============================================
+
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{14pt}
+\rhead{Page \thepage}
+\lhead{Algorithms WiSe25/26 - Exercise Sheet \#\exercisenum}
+
+% ============================================
+% DOCUMENT METADATA
+% ============================================
+
+\title{
+    \vspace{-2cm}
+    \Large\textbf{Algorithms WiSe25/26}\\
+    \large Exercise Sheet \#\exercisenum
+    \vspace{-0.5cm}
+}
+
+\author{}  % No author - anonymous submission
+
+\date{\today}
+
+% ============================================
+% DOCUMENT BEGINS
+% ============================================
+
+\begin{document}
+
+% Title page (no line numbers here)
+\maketitle
+\thispagestyle{fancy}
+\noindent\rule{\textwidth}{0.4pt}
+
+% Start line numbering from here
+\linenumbers
+
+% ============================================
+% HELPER COMMANDS
+% ============================================
+
+% Exercise title command: new page, course header, reset line & page numbers
+\newcommand{\exercisetitle}[1]{%
+    \newpage%
+    \setcounter{page}{1}%  % Reset page number to 1 for this exercise
+    \nolinenumbers%
+    % Add course header
+    {\centering\Large\textbf{Algorithms WiSe25/26}\par}%
+    {\centering\large Exercise Sheet \#\exercisenum\par}%
+    \vspace{1em}%
+    \section*{#1}%
+    \resetlinenumber%  % Reset line numbers to 1
+    \linenumbers%
+}
+
+% Exercise part command: excludes from line numbering
+\newcommand{\exercisepart}[1]{%
+    \nolinenumbers%
+    \subsection*{#1}%
+    \linenumbers%
+}
+
+% ============================================
+% EXERCISE CONTENT PLACEHOLDER
+% ============================================
+
+% Content will be inserted here by the editor
+
+\end{document}

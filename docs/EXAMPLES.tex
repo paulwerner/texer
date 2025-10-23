@@ -1,0 +1,127 @@
+\exercisetitle{Exercise 1: Sorting Algorithm Analysis}
+
+\exercisepart{Part (a)}
+
+\textbf{Problem:} Analyze the time complexity of the following sorting algorithm.
+
+\textbf{Solution:}
+
+We analyze the algorithm step by step. The outer loop runs $\BigO{n}$ times, and for each iteration, the inner loop performs at most $\BigO{n}$ comparisons.
+
+Therefore, the total number of operations is:
+\[
+    T(n) = \sum_{i=1}^{n} \BigO{n} = \BigO{n^2}
+\]
+
+Using the Master Theorem with $a=2$, $b=2$, and $f(n) = \BigO{n}$, we get $\log_b a = 1$ and $f(n) = \BigTheta{n^{\log_b a}}$, so the solution is $T(n) = \BigTheta{n \log n}$.
+
+\exercisepart{Part (b)}
+
+\textbf{Problem:} Prove the correctness of the algorithm using induction.
+
+\textbf{Solution:}
+
+We prove this by induction on $n \in \N$.
+
+\textbf{Base case ($n=1$):} For an array of size 1, the algorithm trivially returns a sorted array.
+
+\textbf{Inductive hypothesis:} Assume the algorithm correctly sorts all arrays of size $k \leq n$.
+
+\textbf{Inductive step:} Consider an array of size $n+1$. After processing the first element...
+
+Therefore, by the principle of mathematical induction, the algorithm is correct for all $n \in \N$. \hfill$\square$
+
+
+\exercisetitle{Exercise 2: Graph Algorithm Design}
+
+\textbf{Problem:} Design a breadth-first search algorithm for an undirected graph $G = (V, E)$ where $\card{V} = n$ and $\card{E} = m$.
+
+\textbf{Solution:}
+
+Here's the pseudocode for our BFS algorithm:
+
+\begin{algorithm}
+\caption{Breadth-First Search}\label{alg:bfs}
+\begin{algorithmic}[1]
+\Require Graph $G = (V, E)$, starting vertex $s \in V$
+\Ensure All vertices reachable from $s$ are visited
+\State Initialize queue $Q \gets \emptyset$
+\State Initialize set $V_{visited} \gets \emptyset$
+\State Enqueue $s$ into $Q$
+\State Mark $s$ as visited: $V_{visited} \gets V_{visited} \cup \set{s}$
+\While{$Q \neq \emptyset$}
+    \State $u \gets$ Dequeue from $Q$
+    \For{each neighbor $v$ of $u$}
+        \If{$v \notin V_{visited}$}
+            \State Mark $v$ as visited: $V_{visited} \gets V_{visited} \cup \set{v}$
+            \State Enqueue $v$ into $Q$
+        \EndIf
+    \EndFor
+\EndWhile
+\State \Return $V_{visited}$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Time Complexity Analysis:}
+
+The algorithm visits each vertex exactly once (line 6 in Algorithm \ref{alg:bfs}), and for each vertex, it examines all its neighbors (line 8). Since each edge is examined at most twice (once from each endpoint), the total time complexity is:
+
+\[
+    T(n,m) = \BigO{n + m}
+\]
+
+\textbf{Space Complexity:} The algorithm uses $\BigO{n}$ space for the queue and the visited set.
+
+\textbf{Correctness:} The algorithm is correct because it explores vertices in increasing order of distance from $s$, ensuring all reachable vertices are visited exactly once.
+
+
+\exercisetitle{Exercise 3: Recurrence Relations}
+
+\textbf{Problem:} Solve the following recurrence relation using the Master Theorem:
+
+\[
+    T(n) = \begin{cases}
+        \Theta(1) & \text{if } n = 1\\
+        4T\left(\frac{n}{2}\right) + \Theta(n) & \text{if } n > 1
+    \end{cases}
+\]
+
+\textbf{Solution:}
+
+We apply the Master Theorem with:
+\begin{itemize}
+    \item $a = 4$ (number of recursive calls)
+    \item $b = 2$ (input size reduction factor)
+    \item $f(n) = \Theta(n)$ (work done at each level)
+\end{itemize}
+
+First, we compute $\log_b a$:
+\[
+    \log_b a = \log_2 4 = 2
+\]
+
+Now we compare $f(n) = \Theta(n)$ with $n^{\log_b a} = n^2$:
+
+\[
+    f(n) = \Theta(n) = \Theta(n^{2-1}) = \Theta(n^{\log_b a - 1})
+\]
+
+This matches Case 1 of the Master Theorem (since $f(n) = \BigO{n^{\log_b a - \epsilon}}$ for $\epsilon = 1$).
+
+Therefore:
+\[
+    T(n) = \Theta(n^{\log_b a}) = \Theta(n^2)
+\]
+
+\textbf{Verification:} We can verify this result by expanding the recurrence tree:
+- Level 0: $n$ work
+- Level 1: $4 \cdot \frac{n}{2} = 2n$ work
+- Level 2: $16 \cdot \frac{n}{4} = 4n$ work
+- Level $i$: $4^i \cdot \frac{n}{2^i} = 2^i \cdot n$ work
+
+The tree has height $\log_2 n$, so the total work is:
+\[
+    \sum_{i=0}^{\log_2 n} 2^i \cdot n = n \sum_{i=0}^{\log_2 n} 2^i = n \cdot \Theta(2^{\log_2 n}) = \Theta(n^2)
+\]
+
+This confirms our result. \hfill$\square$
