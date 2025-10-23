@@ -216,21 +216,21 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="bg-white border-b shadow-sm">
+      <div className="bg-card border-b border-border">
         <div className="max-w-screen-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900">TeXer Exercise Editor</h1>
+              <h1 className="text-2xl font-bold text-foreground">TeXer Exercise Editor</h1>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Exercise #:</label>
+                <label className="text-sm text-muted-foreground">Exercise Sheet #:</label>
                 <input
                   type="number"
                   min="1"
                   value={exerciseNumber}
                   onChange={(e) => setExerciseNumber(parseInt(e.target.value) || 1)}
-                  className="w-16 px-2 py-1 border rounded text-sm"
+                  className="w-16 px-2 py-1 bg-input border border-border rounded text-sm text-foreground focus:ring-2 focus:ring-ring outline-none"
                 />
               </div>
             </div>
@@ -267,7 +267,7 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
       </div>
 
       {/* Command Toolbar */}
-      <div className="bg-white border-b shadow-sm overflow-x-auto">
+      <div className="bg-card border-b border-border overflow-x-auto scrollbar-thin">
         <div className="max-w-screen-2xl mx-auto px-4 py-2">
           <div className="flex gap-2 flex-wrap">
             {Object.entries(LATEX_COMMANDS).map(([cmd, info]) => (
@@ -307,7 +307,7 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
                 ref={editorRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="flex-1 w-full px-4 py-2 font-mono text-sm border-none outline-none resize-none"
+                className="flex-1 w-full px-4 py-2 font-mono text-sm bg-card text-foreground border-none outline-none resize-none scrollbar-thin"
                 placeholder="Start writing your exercise solution..."
                 spellCheck={false}
               />
@@ -320,12 +320,12 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">
                   PDF Preview
-                  {isCompiling && <span className="text-sm text-gray-500 ml-2">(Compiling...)</span>}
+                  {isCompiling && <span className="text-sm text-muted-foreground ml-2">(Compiling...)</span>}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 p-0">
                 {error && (
-                  <div className="p-4 bg-red-50 text-red-600 text-sm">
+                  <div className="p-4 bg-destructive/10 text-destructive text-sm border-l-4 border-destructive">
                     <strong>Error:</strong> {error}
                   </div>
                 )}
@@ -337,7 +337,7 @@ Write your solution here. You can use inline math like $\\BigO{n \\log n}$ or di
                   />
                 )}
                 {!pdfUrl && !error && !isCompiling && (
-                  <div className="flex items-center justify-center h-full text-gray-400">
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
                     <div className="text-center">
                       <Eye className="w-16 h-16 mx-auto mb-4 opacity-50" />
                       <p>Preview will appear here</p>

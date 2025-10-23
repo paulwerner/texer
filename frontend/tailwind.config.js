@@ -47,6 +47,20 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: "#1a1a1a",
+        "surface-light": "#2a2a2a",
+        "score-critical": "#dc2626",
+        "score-warning": "#f59e0b",
+        "score-good": "#3b82f6",
+        "score-excellent": "#10b981",
+      },
+      backgroundColor: {
+        surface: "#1a1a1a",
+        "surface-light": "#2a2a2a",
+      },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -55,12 +69,12 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
         },
       },
       animation: {
