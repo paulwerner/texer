@@ -578,7 +578,7 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
         '% Content will be inserted here by the editor',
         content
       ).replace(
-        '\\newcommand{\\exercisenum}{1}',
+        '\\newcommand{\\exercisenum}{X}',
         `\\newcommand{\\exercisenum}{${exerciseNumber}}`
       );
 
