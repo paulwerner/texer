@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from './Button';
-import { Card, CardContent, CardHeader, CardTitle } from './Card';
-import { FileDown, Play, Code, Eye, ChevronDown, PlayCircle, Check } from 'lucide-react';
+import { Card, CardContent } from './Card';
+import { FileDown, Play, Code, Eye, ChevronDown, PlayCircle, Check, FileText, ClipboardCheck } from 'lucide-react';
 import axios from 'axios';
 import CommandAutocomplete from './CommandAutocomplete';
 
@@ -399,6 +399,27 @@ const LATEX_COMMANDS = {
     symbol: '📋',
     requiresMathMode: false
   },
+  '\\points{}': {
+    label: 'Points',
+    description: '[5 points] for a section',
+    keywords: ['points', 'score', 'marks'],
+    symbol: '✓',
+    requiresMathMode: false
+  },
+  '\\totalpoints{}': {
+    label: 'Total Points',
+    description: 'Total: 20 points',
+    keywords: ['total', 'points', 'sum', 'score'],
+    symbol: '∑',
+    requiresMathMode: false
+  },
+  '\\score{}{}': {
+    label: 'Score',
+    description: 'Points: 2/3 format',
+    keywords: ['score', 'grade', 'marks', 'review', 'points'],
+    symbol: '✎',
+    requiresMathMode: false
+  },
   [ALGORITHM_TEMPLATE]: {
     label: 'Algorithm Block',
     description: 'Complete algorithm environment',
@@ -521,6 +542,8 @@ function LatexEditor() {
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
   const [compileMode, setCompileMode] = useState('auto'); // 'auto' | 'manual'
   const [showCompileDropdown, setShowCompileDropdown] = useState(false);
+  const [documentMode, setDocumentMode] = useState('solution'); // 'solution' | 'review'
+  const [showDocumentModeDropdown, setShowDocumentModeDropdown] = useState(false);
   
   // Autocomplete state
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -536,16 +559,43 @@ function LatexEditor() {
   const compileDropdownRef = useRef(null);
   const compileShowTimeoutRef = useRef(null);
   const compileHideTimeoutRef = useRef(null);
+  const documentModeDropdownRef = useRef(null);
+  const documentModeShowTimeoutRef = useRef(null);
+  const documentModeHideTimeoutRef = useRef(null);
   const compileTimeoutRef = useRef(null);
   const hasInitiallyCompiled = useRef(false);
   const previousPdfUrl = useRef(null);
 
-  const loadTemplate = async () => {
-    try {
-      const response = await axios.get('/api/template');
-      setTemplate(response.data.template);
-      
-      const initialContent = `
+  // Generate mode-specific example content
+  const getExampleContent = useCallback((mode) => {
+    if (mode === 'review') {
+      return `
+\\exercisetitle{Exercise 1: Algorithm Analysis}
+
+\\textbf{Review Comments:}
+
+Overall, the solution demonstrates a solid understanding of asymptotic analysis. However, there are some areas that need improvement:
+
+\\begin{itemize}
+    \\item \\textbf{Correctness:} The recursive relation is correctly identified. The base case is properly handled.
+    \\item \\textbf{Analysis:} The time complexity derivation is mostly correct, but the explanation could be more detailed.
+    \\item \\textbf{Notation:} Good use of Big-O notation throughout. Minor: use $\\BigO{n \\log n}$ instead of writing it out.
+    \\item \\textbf{Clarity:} The proof structure is clear but could benefit from more intermediate steps.
+\\end{itemize}
+
+\\textbf{Suggestions for improvement:}
+\\begin{itemize}
+    \\item Add more explanation when applying the Master Theorem
+    \\item Show the recursion tree for visual clarity
+    \\item Verify edge cases more explicitly
+\\end{itemize}
+
+\\vspace{1em}
+\\score{7}{10}
+`;
+    } else {
+      // Solution mode - clean example without review commands
+      return `
 \\exercisetitle{Exercise 1: Your Title Here}
 
 \\exercisepart{Part (a)}
@@ -554,14 +604,31 @@ function LatexEditor() {
 
 \\textbf{Solution:}
 
-Write your solution here.Use / for commands.
+Write your solution here. Use / for commands.
 
 You can use inline math like $\\BigO{n \\log n}$ or display math:
 
 \\[
     T(n) = 2T\\left(\\frac{n}{2}\\right) + \\BigO{n}
 \\]
+
+\\exercisepart{Part (b)}
+
+\\textbf{Problem:} Another problem.
+
+\\textbf{Solution:}
+
+Your solution for part (b) goes here.
 `;
+    }
+  }, []);
+
+  const loadTemplate = async () => {
+    try {
+      const response = await axios.get('/api/template');
+      setTemplate(response.data.template);
+      
+      const initialContent = getExampleContent(documentMode);
       setContent(initialContent);
     } catch (err) {
       setError('Failed to load template');
@@ -587,6 +654,9 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
       ).replace(
         '\\newcommand{\\exercisenum}{X}',
         `\\newcommand{\\exercisenum}{${exerciseNumber}}`
+      ).replace(
+        '\\reviewmodefalse',
+        documentMode === 'review' ? '\\reviewmodetrue' : '\\reviewmodefalse'
       );
 
       const response = await axios.post('/api/compile', {
@@ -634,7 +704,7 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     } finally {
       setIsCompiling(false);
     }
-  }, [template, content, exerciseNumber]);
+  }, [template, content, exerciseNumber, documentMode]);
 
   // Calculate cursor position for autocomplete dropdown
   const calculateCursorPosition = useCallback(() => {
@@ -709,7 +779,6 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     const end = textarea.selectionStart;
     
     let finalCommand = commandText;
-    let cursorOffset = 0;
     
     // Handle math mode wrapping for commands that require it
     if (requiresMathMode && !isInMathMode(content, start)) {
@@ -718,13 +787,9 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
       if (useBlock) {
         // Use display math mode with newlines
         finalCommand = `\\[\n    ${commandText}\n\\]`;
-        // Position cursor inside the command (after the newline and indentation)
-        cursorOffset = 9; // Length of "\\[\n    "
       } else {
         // Use inline math mode
         finalCommand = `$${commandText}$`;
-        // Position cursor inside the command (after the $)
-        cursorOffset = 1;
       }
     }
     
@@ -959,6 +1024,30 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showCompileDropdown]);
 
+  // Close document mode dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showDocumentModeDropdown && 
+          documentModeDropdownRef.current && 
+          !documentModeDropdownRef.current.contains(e.target)) {
+        setShowDocumentModeDropdown(false);
+        
+        // Clear any pending timers when closing via click outside
+        if (documentModeShowTimeoutRef.current) {
+          clearTimeout(documentModeShowTimeoutRef.current);
+          documentModeShowTimeoutRef.current = null;
+        }
+        if (documentModeHideTimeoutRef.current) {
+          clearTimeout(documentModeHideTimeoutRef.current);
+          documentModeHideTimeoutRef.current = null;
+        }
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDocumentModeDropdown]);
+
   // Auto-switch to manual mode when in Editor-only mode
   useEffect(() => {
     if (!showPreview && compileMode === 'auto') {
@@ -971,7 +1060,26 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     loadTemplate();
   }, []);
 
-  // Cleanup compile dropdown timers on unmount
+  // Update example content when switching modes (only if content is still an example)
+  useEffect(() => {
+    // Skip if template hasn't loaded yet
+    if (!template) return;
+    
+    // Check if current content matches either example template
+    const solutionExample = getExampleContent('solution').trim();
+    const reviewExample = getExampleContent('review').trim();
+    const currentContent = content.trim();
+    
+    // Only update if content is still one of the examples (not edited by user)
+    if (currentContent === solutionExample || currentContent === reviewExample) {
+      const newContent = getExampleContent(documentMode);
+      if (newContent.trim() !== currentContent) {
+        setContent(newContent);
+      }
+    }
+  }, [documentMode, template, getExampleContent, content]);
+
+  // Cleanup dropdown timers on unmount
   useEffect(() => {
     return () => {
       if (compileShowTimeoutRef.current) {
@@ -979,6 +1087,12 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
       }
       if (compileHideTimeoutRef.current) {
         clearTimeout(compileHideTimeoutRef.current);
+      }
+      if (documentModeShowTimeoutRef.current) {
+        clearTimeout(documentModeShowTimeoutRef.current);
+      }
+      if (documentModeHideTimeoutRef.current) {
+        clearTimeout(documentModeHideTimeoutRef.current);
       }
     };
   }, []);
@@ -1042,6 +1156,9 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
       ).replace(
         '\\newcommand{\\exercisenum}{X}',
         `\\newcommand{\\exercisenum}{${exerciseNumber}}`
+      ).replace(
+        '\\reviewmodefalse',
+        documentMode === 'review' ? '\\reviewmodetrue' : '\\reviewmodefalse'
       );
 
       const response = await axios.post('/api/compile-split', {
@@ -1147,6 +1264,59 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
     }
   };
 
+  // Document mode button hover handlers (same pattern as compile button)
+  const handleDocumentModeButtonMouseEnter = () => {
+    // Cancel any pending hide timer (user came back)
+    if (documentModeHideTimeoutRef.current) {
+      clearTimeout(documentModeHideTimeoutRef.current);
+      documentModeHideTimeoutRef.current = null;
+    }
+    
+    // If dropdown is already shown, keep it shown
+    if (showDocumentModeDropdown) {
+      return;
+    }
+    
+    // Start timer to show dropdown after 500ms hover
+    if (!documentModeShowTimeoutRef.current) {
+      documentModeShowTimeoutRef.current = setTimeout(() => {
+        setShowDocumentModeDropdown(true);
+        documentModeShowTimeoutRef.current = null;
+      }, 500);
+    }
+  };
+
+  const handleDocumentModeButtonMouseLeave = () => {
+    // Cancel any pending show timer (user left before it showed)
+    if (documentModeShowTimeoutRef.current) {
+      clearTimeout(documentModeShowTimeoutRef.current);
+      documentModeShowTimeoutRef.current = null;
+    }
+    
+    // If dropdown is shown, start grace period before hiding
+    if (showDocumentModeDropdown) {
+      documentModeHideTimeoutRef.current = setTimeout(() => {
+        setShowDocumentModeDropdown(false);
+        documentModeHideTimeoutRef.current = null;
+      }, 300); // 300ms grace period to move from button to dropdown
+    }
+  };
+
+  const handleDocumentModeChange = (mode) => {
+    setDocumentMode(mode);
+    setShowDocumentModeDropdown(false);
+    
+    // Clear any pending timers
+    if (documentModeShowTimeoutRef.current) {
+      clearTimeout(documentModeShowTimeoutRef.current);
+      documentModeShowTimeoutRef.current = null;
+    }
+    if (documentModeHideTimeoutRef.current) {
+      clearTimeout(documentModeHideTimeoutRef.current);
+      documentModeHideTimeoutRef.current = null;
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
@@ -1175,6 +1345,52 @@ You can use inline math like $\\BigO{n \\log n}$ or display math:
                 {showPreview ? <Code className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
                 {showPreview ? 'Editor Only' : 'Show Preview'}
               </Button>
+              <div 
+                className="relative" 
+                ref={documentModeDropdownRef}
+                onMouseEnter={handleDocumentModeButtonMouseEnter}
+                onMouseLeave={handleDocumentModeButtonMouseLeave}
+              >
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleDocumentModeChange(documentMode === 'solution' ? 'review' : 'solution')}
+                >
+                  {documentMode === 'solution' ? (
+                    <FileText className="w-4 h-4 mr-2" />
+                  ) : (
+                    <ClipboardCheck className="w-4 h-4 mr-2" />
+                  )}
+                  {documentMode === 'solution' ? 'Solution' : 'Review'}
+                </Button>
+                
+                {showDocumentModeDropdown && (
+                  <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-md shadow-lg z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleDocumentModeChange('solution')}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between"
+                      >
+                        <span className="flex items-center">
+                          <FileText className="w-4 h-4 mr-2" />
+                          Solution Mode
+                        </span>
+                        {documentMode === 'solution' && <Check className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleDocumentModeChange('review')}
+                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between"
+                      >
+                        <span className="flex items-center">
+                          <ClipboardCheck className="w-4 h-4 mr-2" />
+                          Review Mode
+                        </span>
+                        {documentMode === 'review' && <Check className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div 
                 className="relative" 
                 ref={compileDropdownRef}

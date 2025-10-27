@@ -49,6 +49,10 @@
 % Exercise number - CHANGE THIS TO YOUR EXERCISE NUMBER
 \newcommand{\exercisenum}{X}
 
+% Document mode - use boolean flag for review mode
+\newif\ifreviewmode
+\reviewmodefalse  % Default to solution mode
+
 % Remove paragraph indentation globally (fixes indentation issues)
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5em}
@@ -94,6 +98,11 @@
 \newcommand{\FALSE}{\textsc{false}}
 \newcommand{\NIL}{\textsc{nil}}
 
+% Point tracking commands (useful for review mode)
+\newcommand{\points}[1]{\textbf{[#1 points]}}
+\newcommand{\totalpoints}[1]{\textbf{Total: #1 points}}
+\newcommand{\score}[2]{\textbf{Points: #1/#2}}
+
 % ============================================
 % HEADER CONFIGURATION
 % ============================================
@@ -102,7 +111,7 @@
 \fancyhf{}
 \setlength{\headheight}{14pt}
 \rhead{Page \thepage}
-\lhead{Algorithms WiSe25/26 - Exercise Sheet \#\exercisenum}
+\lhead{Algorithms WiSe25/26 - Exercise Sheet \#\exercisenum\ifreviewmode\ (Review)\fi}
 
 % ============================================
 % DOCUMENT METADATA
@@ -111,7 +120,7 @@
 \title{
     \vspace{-2cm}
     \Large\textbf{Algorithms WiSe25/26}\\
-    \large Exercise Sheet \#\exercisenum
+    \large Exercise Sheet \#\exercisenum\ifreviewmode\ (Review)\fi
     \vspace{-0.5cm}
 }
 
@@ -137,7 +146,7 @@
     \thispagestyle{fancy}%
     % Add course header
     {\centering\Large\textbf{Algorithms WiSe25/26}\par}%
-    {\centering\large Exercise Sheet \#\exercisenum\par}%
+    {\centering\large Exercise Sheet \#\exercisenum\ifreviewmode\ (Review)\fi\par}%
     {\centering\normalsize\today\par}%
     \noindent\rule{\textwidth}{0.4pt}%
     \vspace{1em}%
