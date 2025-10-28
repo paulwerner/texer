@@ -420,6 +420,13 @@ const LATEX_COMMANDS = {
     symbol: '✎',
     requiresMathMode: false
   },
+  '\\begin{itemize}\n    \\item {}\n\\end{itemize}': {
+    label: 'List',
+    description: 'Bulleted list with one item',
+    keywords: ['list', 'itemize', 'bullet', 'items', 'ul'],
+    symbol: '•',
+    requiresMathMode: false
+  },
   [ALGORITHM_TEMPLATE]: {
     label: 'Algorithm Block',
     description: 'Complete algorithm environment',
