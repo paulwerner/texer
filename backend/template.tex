@@ -103,6 +103,16 @@
 \newcommand{\totalpoints}[1]{\textbf{Total: #1 points}}
 \newcommand{\score}[2]{\textbf{Points: #1/#2}}
 
+% Multi-line function numbering
+\newenvironment{multilinefunction}[1][]{%
+    \begin{linenomath}%
+    \begin{equation}%
+    \if\relax\detokenize{#1}\relax\else\label{#1}\fi%
+}{%
+    \end{equation}%
+    \end{linenomath}%
+}
+
 % ============================================
 % HEADER CONFIGURATION
 % ============================================
@@ -151,6 +161,7 @@
     \noindent\rule{\textwidth}{0.4pt}%
     \vspace{1em}%
     \section*{#1}%
+    \setcounter{equation}{0}%  % Reset multi-line function numbering
     \resetlinenumber%  % Reset line numbers to 1
     \linenumbers%
 }
