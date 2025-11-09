@@ -190,6 +190,7 @@ The editor provides slash command autocomplete with 40+ commands. Type `/` in th
 
 **Templates:**
 - **Algorithm Block**: Complete algorithm environment with numbered lines
+- **Multiline Function**: Numbered multi-line equation environment for recurrence relations
 
 ### Slash Command Autocomplete
 
@@ -251,6 +252,25 @@ Type `/algorithm` or `/alg` to insert a complete algorithm template:
 \end{algorithmic}
 \end{algorithm}
 ```
+
+### Multiline Function Equations
+
+Type `/multiline` or `/function` to insert a numbered multi-line equation environment:
+
+```latex
+\begin{multilinefunction}[recurrence_label]
+    T(n) = \begin{cases}
+        \Theta(1) & \text{if } n = 1\\
+        4T\left(\frac{n}{2}\right) + \Theta(n) & \text{if } n > 1
+    \end{cases}
+\end{multilinefunction}
+```
+
+Features:
+- **Per-exercise numbering**: Equation numbers reset for each new `\exercisetitle`
+- **Optional labels**: Add `[label]` for cross-referencing with `\ref{label}`
+- **Line numbering excluded**: The environment is excluded from line numbering
+- **Perfect for recurrence relations**: Ideal for Master Theorem problems and recursive algorithms
 
 ### Exporting PDFs
 

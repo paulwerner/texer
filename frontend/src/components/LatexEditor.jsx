@@ -20,6 +20,15 @@ const ALGORITHM_TEMPLATE = `
 \\end{algorithm}
 `;
 
+const MULTILINE_FUNCTION_TEMPLATE = `
+\\begin{multilinefunction}[label]
+    T(n) = \\begin{cases}
+        \\Theta(1) & \\text{if } n = 1\\\\
+        f(n) & \\text{if } n > 1
+    \\end{cases}
+\\end{multilinefunction}
+`;
+
 // Enhanced commands with keywords, symbols, and math mode requirements
 const LATEX_COMMANDS = {
   // Math-mode commands (require $ $ or \[ \])
@@ -432,6 +441,14 @@ const LATEX_COMMANDS = {
     description: 'Complete algorithm environment',
     keywords: ['algorithm', 'alg', 'pseudocode', 'block'],
     symbol: '🔧',
+    isTemplate: true,
+    requiresMathMode: false
+  },
+  [MULTILINE_FUNCTION_TEMPLATE]: {
+    label: 'Multiline Function',
+    description: 'Numbered multi-line equation environment',
+    keywords: ['multiline', 'function', 'equation', 'cases', 'numbered', 'recurrence'],
+    symbol: '🔢',
     isTemplate: true,
     requiresMathMode: false
   }
