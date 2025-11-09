@@ -29,6 +29,17 @@ const MULTILINE_FUNCTION_TEMPLATE = `
 \\end{multilinefunction}
 `;
 
+const PSEUDOCODE_TEMPLATE = `
+\\begin{pseudocode}
+ALGORITHM-NAME(A)
+\tn = A.length
+\tfor i = 1 to n-1
+\t\tfor j = i+1 to n
+\t\t\tif condition
+\t\t\t\tOUTPUT result
+\\end{pseudocode}
+`;
+
 // Enhanced commands with keywords, symbols, and math mode requirements
 const LATEX_COMMANDS = {
   // Math-mode commands (require $ $ or \[ \])
@@ -449,6 +460,14 @@ const LATEX_COMMANDS = {
     description: 'Numbered multi-line equation environment',
     keywords: ['multiline', 'function', 'equation', 'cases', 'numbered', 'recurrence'],
     symbol: '🔢',
+    isTemplate: true,
+    requiresMathMode: false
+  },
+  [PSEUDOCODE_TEMPLATE]: {
+    label: 'Pseudocode',
+    description: 'Simple pseudocode with line numbers',
+    keywords: ['pseudocode', 'code', 'pseudo', 'simple', 'numbered', 'listing'],
+    symbol: '📄',
     isTemplate: true,
     requiresMathMode: false
   }

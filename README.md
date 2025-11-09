@@ -191,6 +191,7 @@ The editor provides slash command autocomplete with 40+ commands. Type `/` in th
 **Templates:**
 - **Algorithm Block**: Complete algorithm environment with numbered lines
 - **Multiline Function**: Numbered multi-line equation environment for recurrence relations
+- **Pseudocode**: Simple pseudocode with automatic line numbering (WYSIWYG)
 
 ### Slash Command Autocomplete
 
@@ -271,6 +272,51 @@ Features:
 - **Optional labels**: Add `[label]` for cross-referencing with `\ref{label}`
 - **Line numbering excluded**: The environment is excluded from line numbering
 - **Perfect for recurrence relations**: Ideal for Master Theorem problems and recursive algorithms
+
+### Simple Pseudocode
+
+Type `/pseudocode` or `/pseudo` to insert a simple pseudocode environment with automatic line numbering:
+
+```latex
+\begin{pseudocode}
+FIND-EVEN-SUM-PAIRS(A)
+	n = A.length
+	for i = 1 to n-1
+		for j = i+1 to n
+			if (A[i] + A[j]) mod 2 == 0
+				OUTPUT (A[i], A[j])
+\end{pseudocode}
+```
+
+Features:
+- **WYSIWYG**: Write pseudocode directly with tabs for indentation
+- **Automatic line numbering**: Each line gets a number (independent from document line numbers)
+- **No special commands needed**: Unlike `\begin{algorithmic}`, just write plain text
+- **Monospace font**: Code-style formatting
+- **Tab-friendly**: Tabs are preserved for clean indentation (tab size: 4 spaces)
+- **Perfect for simple algorithms**: Quick pseudocode without structured commands
+
+**Comparison with Algorithm Block:**
+
+| Feature | Pseudocode | Algorithm Block |
+|---------|-----------|-----------------|
+| Syntax | Plain text with tabs | Structured (`\State`, `\While`, etc.) |
+| Line numbers | Automatic (1, 2, 3...) | Automatic (1, 2, 3...) |
+| Caption/Label | Not included | `\caption{}` and `\label{}` |
+| Use case | Quick, simple pseudocode | Formal algorithms with structure |
+| Formatting | Manual with tabs | Automatic with keywords |
+
+**When to use Pseudocode:**
+- Quick algorithm sketches
+- Simple code examples
+- When you want full control over formatting
+- When structured commands feel too verbose
+
+**When to use Algorithm Block:**
+- Formal algorithm presentation
+- Need captions and references
+- Want consistent structured formatting
+- Complex algorithms with many nested blocks
 
 ### Exporting PDFs
 

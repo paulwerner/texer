@@ -125,3 +125,37 @@ The tree has height $\log_2 n$, so the total work is:
 \]
 
 This confirms our result. \hfill$\square$
+
+
+\exercisetitle{Exercise 4: Simple Pseudocode Analysis}
+
+\textbf{Problem:} Analyze the time complexity of the following algorithm that finds all pairs of elements in an array whose sum is even.
+
+\begin{pseudocode}
+FIND-EVEN-SUM-PAIRS(A)
+	n = A.length
+	for i = 1 to n-1
+		for j = i+1 to n
+			if (A[i] + A[j]) mod 2 == 0
+				OUTPUT (A[i], A[j])
+\end{pseudocode}
+
+\textbf{Solution:}
+
+The algorithm has two nested loops:
+\begin{itemize}
+    \item The outer loop (line 3) runs from $i = 1$ to $n-1$, so it executes $n-1$ times
+    \item For each iteration of the outer loop, the inner loop (line 4) runs from $j = i+1$ to $n$
+    \item In the worst case, the inner loop executes approximately $n-i$ times for each value of $i$
+\end{itemize}
+
+Total number of iterations:
+\[
+    \sum_{i=1}^{n-1} (n-i) = \sum_{k=1}^{n-1} k = \frac{(n-1)n}{2} = \BigO{n^2}
+\]
+
+The condition check (line 5) and output operation (line 6) are both $\BigO{1}$ operations.
+
+\textbf{Time Complexity:} $\BigO{n^2}$
+
+\textbf{Space Complexity:} $\BigO{1}$ (no additional space used besides input array)

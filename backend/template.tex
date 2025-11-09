@@ -113,6 +113,35 @@
     \end{linenomath}%
 }
 
+% Pseudocode environment (simple, WYSIWYG with automatic line numbering)
+\lstdefinestyle{pseudocode}{
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    stepnumber=1,
+    frame=none,
+    breaklines=false,
+    tabsize=4,
+    keepspaces=true,
+    columns=flexible,
+    showstringspaces=false,
+    xleftmargin=0pt,
+    framexleftmargin=0pt,
+    mathescape=false,
+    escapeinside={},
+    literate={}
+}
+
+\lstnewenvironment{pseudocode}
+{
+    \nolinenumbers%
+    \lstset{style=pseudocode}
+}
+{
+    \linenumbers%
+}
+
 % ============================================
 % HEADER CONFIGURATION
 % ============================================
